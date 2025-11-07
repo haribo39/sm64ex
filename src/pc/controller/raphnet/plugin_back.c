@@ -96,7 +96,7 @@ static int g_n_channels = 0;
 int pb_init(pb_debugFunc debugFn)
 {
 	DebugMessage = debugFn;
-	gcn64_init(1);
+	gcn64_init(0);
 	return 0;
 }
 
