@@ -11,7 +11,7 @@
 static int l_PluginInit = 0;
 static int n_controllers = 0;
 
-static unsigned pifRam[16];
+static u32 pifRam[16];
 
 static void DebugMessage(int level, const char *message, ...) {
     switch (level) {
@@ -41,7 +41,7 @@ static void DebugMessage(int level, const char *message, ...) {
     va_end(args);
 }
 
-void controller_raphnet_init() {
+static void controller_raphnet_init() {
     if (l_PluginInit) {
         return;
     }
@@ -58,7 +58,7 @@ void controller_raphnet_init() {
     pb_romOpen();
 }
 
-void startReadData() {
+static void startReadData() {
     u8 *cmdBufPtr;
     OSContPackedRead request;
     s32 i;
@@ -82,7 +82,7 @@ void startReadData() {
     *cmdBufPtr = 254;
 }
 
-void getReadData(OSContPad *pad) {
+static void getReadData(OSContPad *pad) {
     u8 *cmdBufPtr;
     OSContPackedRead response;
     s32 i;
@@ -98,7 +98,7 @@ void getReadData(OSContPad *pad) {
     }
 }
 
-void controller_raphnet_read(OSContPad *pad) {
+static void controller_raphnet_read(OSContPad *pad) {
     if (n_controllers <= 0) {
 		return;
 	}
@@ -109,11 +109,11 @@ void controller_raphnet_read(OSContPad *pad) {
     getReadData(pad);
 }
 
-u32 controller_raphnet_rawkey() {
+static u32 controller_raphnet_rawkey() {
     return VK_INVALID;
 }
 
-void controller_raphnet_shutdown() {
+static void controller_raphnet_shutdown() {
     pb_romClosed();
     pb_shutdown();
 }
