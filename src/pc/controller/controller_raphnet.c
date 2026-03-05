@@ -58,9 +58,13 @@ static void controller_raphnet_init() {
     pb_romOpen();
 }
 
-static void startReadData() {
+static void controller_raphnet_read(OSContPad *pad) {
+    if (n_controllers <= 0) {
+		return;
+	}
+
     u8 *cmdBufPtr;
-    OSContPackedRead request;
+    OSContPackedRequest request;
     s32 i;
     cmdBufPtr = (u8 *) pifRam;
 
@@ -68,45 +72,30 @@ static void startReadData() {
         pifRam[i] = 0;
     }
 
-    request.padOrEnd = 255;
+    request.padOrEnd = 0xff;
     request.txLen = 1;
     request.rxLen = 4;
     request.command = 1;
-    request.button = 65535;
-    request.rawStickX = -1;
-    request.rawStickY = -1;
+    request.data1 = 0xff;
+    request.data2 = 0xff;
+    request.data3 = 0xff;
+    request.data4 = 0xff;
     for (i = 0; i < 4; i++) {
-        * (OSContPackedRead *) cmdBufPtr = request;
-        cmdBufPtr += sizeof(OSContPackedRead);
+        * (OSContPackedRequest *) cmdBufPtr = request;
+        cmdBufPtr += sizeof(OSContPackedRequest);
     }
-    *cmdBufPtr = 254;
-}
+    *cmdBufPtr = 0xfe;
 
-static void getReadData(OSContPad *pad) {
-    u8 *cmdBufPtr;
-    OSContPackedRead response;
-    s32 i;
-    cmdBufPtr = (u8 *) pifRam;
-    for (i = 0; i < 4; i++, cmdBufPtr += sizeof(OSContPackedRead), pad++) {
-        response = * (OSContPackedRead *) cmdBufPtr;
-        pad->errnum = (response.rxLen & 0xc0) >> 4;
-        if (pad->errnum == 0) {
-            pad->button = BE_TO_HOST16(response.button);
-            pad->stick_x = response.rawStickX;
-            pad->stick_y = response.rawStickY;
-        }
-    }
-}
-
-static void controller_raphnet_read(OSContPad *pad) {
-    if (n_controllers <= 0) {
-		return;
-	}
-
-    startReadData();
     pb_readController(0, (u8 *) pifRam + 1);
     pb_readController(-1, NULL);
-    getReadData(pad);
+
+    OSContPackedRead response = * (OSContPackedRead *) pifRam;
+    pad->errnum = (response.rxLen & 0xc0) >> 4;
+    if (pad->errnum == 0) {
+        pad->button = BE_TO_HOST16(response.button);
+        pad->stick_x = response.rawStickX;
+        pad->stick_y = response.rawStickY;
+    }
 }
 
 static u32 controller_raphnet_rawkey() {
